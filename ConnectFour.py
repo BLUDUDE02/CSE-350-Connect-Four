@@ -1,5 +1,6 @@
 import numpy as np
 import pygame
+import pygame_menu
 import sys
 import math
 
@@ -38,13 +39,6 @@ def DrawBoard(board):
     yeltok = pygame.image.load('Yellow-Token.png')
     yeltok.convert()
     rect2 = yeltok.get_rect()
-    
-    top = pygame.image.load('Top.png')
-    top.convert()
-
-    rect4 = top.get_rect()
-    rect4.center = (width/2, SquareSize/2)
-    screen.blit(top, rect4)
     
     print("Building Board!")
     
@@ -147,6 +141,13 @@ def StartGame():
     screen = pygame.display.set_mode(size)
     
     myfont = pygame.font.Font("HackbotFreeTrial-8MgA2.otf", 75)
+    
+    top = pygame.image.load('Top.png')
+    top.convert()
+
+    rect4 = top.get_rect()
+    rect4.center = (width/2, SquareSize/2)
+    screen.blit(top, rect4)
 
     DrawBoard(board)
 
@@ -167,7 +168,6 @@ def StartGame():
                 posx = event.pos[0]
                 posxr = round(posx/10)*10
                 if turn == Player1:
-                    
                     redtok = pygame.image.load('Red-Token.png')
                     redtok.convert()
 
@@ -181,7 +181,7 @@ def StartGame():
                     rect2 = yeltok.get_rect()
                     rect2.center = (posxr, int(SquareSize/2))
                     screen.blit(yeltok, rect2)
-
+                    
             pygame.display.update()
             
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -195,17 +195,19 @@ def StartGame():
                 if turn == Player1:
                     posx = event.pos[0]
                     MakeMove(board, posx, 1)
-                    if CheckWin(board, P1Token):
+                    if CheckWin(board, 1):
+                        print("PLAYER ONE WINS")
                         label = myfont.render("PLAYER ONE WINS", 1, RED)
-                        text_rect = label.get_rect(center=(width/2, SquareSize/2))
+                        text_rect = label.get_rect(center=(700/2, 100/2))
                         screen.blit(label, text_rect)
                         GameOver = True
                 elif turn == Player2:              
                     posx = event.pos[0]
                     MakeMove(board, posx, 2)
-                    if CheckWin(board, P2Token):
+                    if CheckWin(board, 2):
+                        print("PLAYER TWO WINS")
                         label = myfont.render("PLAYER TWO WINS", 1, YELLOW)
-                        text_rect = label.get_rect(center=(width/2, SquareSize/2))
+                        text_rect = label.get_rect(center=(700/2, 100/2))
                         screen.blit(label, text_rect)
                         GameOver = True
                         
