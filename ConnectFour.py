@@ -219,10 +219,15 @@ def StartGame():
                 DrawBoard(board)
                 
             if GameOver:
+                
+                #send to endgame menu
                 pygame.time.wait(3000)
-#
-
+                #GameOver = False
+#Endgame Menu
+menu = pygame_menu.Menu('Game Over', 400, 300)
+menu.add.button('Play Again', StartGame)
+menu.add.button('Exit', pygame_menu.event.EXIT)
 #Main Class
-StartGame()
-    
+#StartGame()
+menu.mainloop(screen)
     
