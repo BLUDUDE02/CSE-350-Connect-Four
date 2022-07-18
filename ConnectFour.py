@@ -117,6 +117,7 @@ def CheckWin(board, piece):
 #
 
 #Main Menu Class
+
 def StartGame():
     global board
     global SquareSize
@@ -129,17 +130,7 @@ def StartGame():
     
     board = CreateBoard()
     LogMove(board)
-    pygame.init()
-
-    #Post PyGame Initialization Variable Declarations
-    SquareSize = 100
-
-    width = 700
-    height = 700
-    size = (width, height)
-
-    screen = pygame.display.set_mode(size)
-    
+ 
     myfont = pygame.font.Font("HackbotFreeTrial-8MgA2.otf", 75)
     
     top = pygame.image.load('Top.png')
@@ -171,12 +162,23 @@ def StartGame():
                     redtok = pygame.image.load('Red-Token.png')
                     redtok.convert()
 
+                    #print("PLAYER ONE TURN")
+                    label = myfont.render("PLAYER ONE TURN", 1, RED)
+                    text_rect = label.get_rect(center=(700/2, 100/2))
+                    screen.blit(label, text_rect)
+
                     rect1 = redtok.get_rect()
                     rect1.center = (posxr, int(SquareSize/2))
                     screen.blit(redtok, rect1)
+
                 elif turn == Player2:
                     yeltok = pygame.image.load('Yellow-Token.png')
                     yeltok.convert()
+                    
+                    #print("PLAYER TWO TURN")
+                    label = myfont.render("PLAYER TWO TURN", 1, YELLOW)
+                    text_rect = label.get_rect(center=(700/2, 100/2))
+                    screen.blit(label, text_rect)
                     
                     rect2 = yeltok.get_rect()
                     rect2.center = (posxr, int(SquareSize/2))
@@ -219,15 +221,45 @@ def StartGame():
                 DrawBoard(board)
                 
             if GameOver:
-                
                 #send to endgame menu
-                pygame.time.wait(3000)
-                #GameOver = False
-#Endgame Menu
-menu = pygame_menu.Menu('Game Over', 400, 300)
-menu.add.button('Play Again', StartGame)
-menu.add.button('Exit', pygame_menu.event.EXIT)
+                #pygame.time.wait(3000)
+                options_menu.enable()
+                
+
 #Main Class
-#StartGame()
-menu.mainloop(screen)
+pygame.init()
+
+#Post PyGame Initialization Variable Declarations
+SquareSize = 100
+
+width = 700
+height = 700
+size = (width, height)
+screen = pygame.display.set_mode(size)
+
+
+#background_image = pygame_menu.BaseImage(
+#    image_path=pygame_menu.baseimage.IMAGE_EXAMPLE_WALLPAPER
+#)
+background = pygame.image.load('Background.png')
+background.convert()
+
+pygame.display.update()
+
+# -------------------------------------------------------------------------
+# Menus
+# -------------------------------------------------------------------------
+theme = pygame_menu.themes.THEME_DARK.copy()
+theme.title_font = pygame.font.Font("HackbotFreeTrial-8MgA2.otf", 28)
+theme.background_color = (0, 0, 0, 180)
+
+main_menu = pygame_menu.Menu('Main Menu', 400, 300, theme=theme)
+main_menu.add.button('Two Player', StartGame)
+main_menu.add.button('Exit', pygame_menu.events.EXIT)
+
+options_menu = pygame_menu.Menu('Game Over', 400, 300, theme=theme)
+options_menu.add.button('Play Again', StartGame)
+options_menu.add.button('Exit', pygame_menu.events.EXIT)
+
+main_menu.mainloop(screen)
     
