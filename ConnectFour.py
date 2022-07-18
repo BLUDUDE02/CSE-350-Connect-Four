@@ -228,10 +228,12 @@ def StartGame():
                 main_menu.disable()
                 options_menu.enable()
                 
-                if options_menu.is_enabled():
-                    options_menu.update(events)
-                    options_menu.draw(screen)
-                
+                events = pygame.event.get()
+                for event in events:
+                    if event.type == pygame.QUIT:
+                        quit()
+                break        
+
                     
 
 #Main Class
@@ -304,6 +306,10 @@ def main(test: bool = False) -> None:
         # Pass events to main_menu
         if main_menu.is_enabled():
             main_menu.update(events)
+            
+        if options_menu.is_enabled():
+            options_menu.update(events)
+            options_menu.draw(screen)
     
         # Main menu
         if main_menu.is_enabled():
