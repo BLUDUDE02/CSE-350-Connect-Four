@@ -3,6 +3,7 @@ import pygame
 import pygame_menu
 import sys
 import math
+import os.path as path
 
 #Variable Declarations
 RowCount = 6
@@ -117,6 +118,13 @@ def CheckWin(board, piece):
 #
 
 #Main Menu Class
+BACKGROUND = path.join(path.dirname(path.abspath(__file__)), '{0}').format('Background.png')
+
+background_image = pygame_menu.BaseImage(
+    image_path=BACKGROUND
+)
+
+
 def StartGame():
     global board
     global SquareSize
@@ -129,16 +137,8 @@ def StartGame():
     
     board = CreateBoard()
     LogMove(board)
-    pygame.init()
-
-    #Post PyGame Initialization Variable Declarations
-    SquareSize = 100
-
-    width = 700
-    height = 700
-    size = (width, height)
-
-    screen = pygame.display.set_mode(size)
+ 
+    SquareSize = 100 
     
     myfont = pygame.font.Font("HackbotFreeTrial-8MgA2.otf", 75)
     
@@ -154,9 +154,16 @@ def StartGame():
     turn = 0
     
     while not GameOver:
-        for event in pygame.event.get():
+        
+        # application events
+        events = pygame.event.get()
+        for event in events:
             if event.type == pygame.QUIT:
                 sys.exit()
+            #elif event.type == pygame.KEYDOWN:
+            #   if event.key == pygame.K_ESCAPE:
+            #       main_menu.enable()
+            #       return
                 
             if event.type == pygame.MOUSEMOTION:
                 top = pygame.image.load('Top.png')
@@ -174,6 +181,7 @@ def StartGame():
                     rect1 = redtok.get_rect()
                     rect1.center = (posxr, int(SquareSize/2))
                     screen.blit(redtok, rect1)
+
                 elif turn == Player2:
                     yeltok = pygame.image.load('Yellow-Token.png')
                     yeltok.convert()
@@ -219,10 +227,97 @@ def StartGame():
                 DrawBoard(board)
                 
             if GameOver:
-                pygame.time.wait(3000)
-#
+                #send to endgame menu
+                main_menu.disable()
+                options_menu.enable()
+                break
+                        
+
+                    
 
 #Main Class
-StartGame()
+def background() -> None:
+    """
+    Function used by menus, draw on background while menu is active.
+    
+
+    background = pygame.image.load('Background.png')
+    background.convert()
+    
+    background_image = pygame.image.load('Background.png')
+    surface.blit(background_image)
+    
+    pygame.display.update()
+    """
+    global screen
+    background_image.draw(screen)
+
+def main(test: bool = False) -> None:
+    
+    global main_menu
+    global options_menu
+    global screen
+    global width
+    global height
+    
+    pygame.init()
+    
+    #Post PyGame Initialization Variable Declarations    
+    width = 700
+    height = 700
+    size = (width, height)
+    screen = pygame.display.set_mode(size)
+    
+    
+
+    
+    # -------------------------------------------------------------------------
+    # Menus
+    # -------------------------------------------------------------------------
+    theme = pygame_menu.themes.THEME_DARK.copy()
+    theme.title_font = pygame_menu.font.FONT_8BIT
+    theme.widget_font = pygame_menu.font.FONT_8BIT
+    theme.background_color = (0, 0, 0, 180)
+    
+    main_menu = pygame_menu.Menu('Connect 4', width, height, theme=theme)
+    main_menu.add.button('Two Player', StartGame)
+    main_menu.add.button('Exit', pygame_menu.events.EXIT)
+    
+    options_menu = pygame_menu.Menu('Game Over', 400, 300, theme=theme)
+    options_menu.add.button('Play Again', StartGame)
+    options_menu.add.button('Exit', pygame_menu.events.EXIT)
+    
+    
+    while True:
+        
+        # events handling for menus -- turn this in to function
+        events = pygame.event.get()
+        for e in events:
+            if e.type == pygame.QUIT:
+                sys.exit()
+        
+        # Pass events to main_menu
+        if main_menu.is_enabled():
+            main_menu.update(events)
+            
+        if options_menu.is_enabled():
+            options_menu.update(events)
+            options_menu.draw(screen)
+    
+        # Main menu
+        if main_menu.is_enabled():
+            main_menu.mainloop(screen, background)
+            
+        # Flip surface
+        pygame.display.flip()
+
+        # At first loop returns
+        if test:
+            break
+        
+if __name__ == '__main__':
+        main()
+
+      
     
     
