@@ -155,23 +155,9 @@ def StartGame():
     
     while not GameOver:
         
-        # application events -- turn this in to function
+        # application events
         events = pygame.event.get()
-        for e in events:
-            if e.type == pygame.QUIT:
-                exit()
-            elif e.type == pygame.KEYDOWN:
-                if e.key == pygame.K_ESCAPE:
-                    main_menu.enable()
-        
-                    # Quit this function, then skip to loop of main-menu
-                    return
-        
-        # Pass events to main_menu
-        if main_menu.is_enabled():
-            main_menu.update(events)
-
-        for event in pygame.event.get():
+        for event in events:
             if event.type == pygame.QUIT:
                 sys.exit()
                 
@@ -188,11 +174,6 @@ def StartGame():
                     redtok = pygame.image.load('Red-Token.png')
                     redtok.convert()
 
-                    #print("PLAYER ONE TURN")
-                    label = myfont.render("PLAYER ONE TURN", 1, RED)
-                    text_rect = label.get_rect(center=(700/2, 100/2))
-                    screen.blit(label, text_rect)
-
                     rect1 = redtok.get_rect()
                     rect1.center = (posxr, int(SquareSize/2))
                     screen.blit(redtok, rect1)
@@ -200,11 +181,6 @@ def StartGame():
                 elif turn == Player2:
                     yeltok = pygame.image.load('Yellow-Token.png')
                     yeltok.convert()
-                    
-                    #print("PLAYER TWO TURN")
-                    label = myfont.render("PLAYER TWO TURN", 1, YELLOW)
-                    text_rect = label.get_rect(center=(700/2, 100/2))
-                    screen.blit(label, text_rect)
                     
                     rect2 = yeltok.get_rect()
                     rect2.center = (posxr, int(SquareSize/2))
@@ -249,10 +225,14 @@ def StartGame():
             if GameOver:
                 #send to endgame menu
                 #pygame.time.wait(3000)
+                main_menu.disable()
                 options_menu.enable()
                 
                 if options_menu.is_enabled():
                     options_menu.update(events)
+                    options_menu.draw(screen)
+                
+                    
 
 #Main Class
 def background() -> None:
@@ -294,27 +274,37 @@ def main(test: bool = False) -> None:
     # Menus
     # -------------------------------------------------------------------------
     theme = pygame_menu.themes.THEME_DARK.copy()
-    theme.title_font = pygame.font.Font("HackbotFreeTrial-8MgA2.otf", 28)
+    theme.title_font = pygame_menu.font.FONT_8BIT
+    theme.widget_font = pygame_menu.font.FONT_8BIT
     theme.background_color = (0, 0, 0, 180)
     
-    main_menu = pygame_menu.Menu('Main Menu', 400, 300, theme=theme)
+    main_menu = pygame_menu.Menu('Connect 4', width*0.8, height*0.8, theme=theme)
     main_menu.add.button('Two Player', StartGame)
     main_menu.add.button('Exit', pygame_menu.events.EXIT)
     
     options_menu = pygame_menu.Menu('Game Over', 400, 300, theme=theme)
-    options_menu.add.button('Play Again', StartGame)
+    options_menu.add.button('Back to Start', pygame_menu.events.BACK)
     options_menu.add.button('Exit', pygame_menu.events.EXIT)
     
     
     while True:
         
-        #event handling
+        # events handling for menus -- turn this in to function
         events = pygame.event.get()
-        for event in events:
-            if event.type == pygame.QUIT:
-                exit()
-            
+        for e in events:
+            if e.type == pygame.QUIT:
+                sys.exit()
+            elif e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_ESCAPE:
+                    main_menu.enable()
         
+                    # Quit this function, then skip to loop of main-menu
+                    return
+        
+        # Pass events to main_menu
+        if main_menu.is_enabled():
+            main_menu.update(events)
+    
         # Main menu
         if main_menu.is_enabled():
             main_menu.mainloop(screen, background)
@@ -327,8 +317,8 @@ def main(test: bool = False) -> None:
             break
         
 if __name__ == '__main__':
-    main()
-  
+        main()
+
       
     
     
