@@ -5,6 +5,7 @@ import random
 import sys
 import math
 import os.path as path
+import os
 
 #Variable Declarations
 RowCount = 6
@@ -289,7 +290,7 @@ def StartGame(mode):
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
-                sys.exit()
+                os._exit(00)
             #elif event.type == pygame.KEYDOWN:
             #   if event.key == pygame.K_ESCAPE:
             #       main_menu.enable()
