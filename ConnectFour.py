@@ -1,6 +1,7 @@
 import numpy as np
 import pygame
 import pygame_menu
+import random
 import sys
 import math
 import os.path as path
@@ -12,6 +13,7 @@ ColumnCount = 7
 Player1 = 0
 Player2 = 1
 
+EMPTY = 0
 P1Token = 1
 P2Token = 2
 
@@ -21,6 +23,8 @@ YELLOW = (171, 92, 28)
 GameMode = 0
 Difficulty = 0
 ValidMove = True;
+
+WINDOW_LENGTH = 4
 
 #Game Board Class
 def CreateBoard():
@@ -117,15 +121,141 @@ def CheckWin(board, piece):
                 return True
 #
 
+#AI Class
+def evaluate_window(window, piece):
+    score = 0
+    opp_piece = P1Token
+    if piece == P1Token:
+        opp_piece = P2Token
+
+    if window.count(piece) == 4:
+        score += 100
+    elif window.count(piece) == 3 and window.count(EMPTY) == 1:
+        score += 5
+    elif window.count(piece) == 2 and window.count(EMPTY) == 2:
+        score += 2
+
+    if window.count(opp_piece) == 3 and window.count(EMPTY) == 1:
+        score -= 4
+
+    return score
+
+def score_position(board, piece):
+    score = 0
+
+    ## Score center column
+    center_array = [int(i) for i in list(board[:, ColumnCount//2])]
+    center_count = center_array.count(piece)
+    score += center_count * 3
+
+    ## Score Horizontal
+    for r in range(RowCount):
+        row_array = [int(i) for i in list(board[r,:])]
+        for c in range(ColumnCount-3):
+            window = row_array[c:c+WINDOW_LENGTH]
+            score += evaluate_window(window, piece)
+
+    ## Score Vertical
+    for c in range(ColumnCount):
+        col_array = [int(i) for i in list(board[:,c])]
+        for r in range(RowCount-3):
+            window = col_array[r:r+WINDOW_LENGTH]
+            score += evaluate_window(window, piece)
+
+    ## Score posiive sloped diagonal
+    for r in range(RowCount-3):
+        for c in range(ColumnCount-3):
+            window = [board[r+i][c+i] for i in range(WINDOW_LENGTH)]
+            score += evaluate_window(window, piece)
+
+    for r in range(RowCount-3):
+        for c in range(ColumnCount-3):
+            window = [board[r+3-i][c+i] for i in range(WINDOW_LENGTH)]
+            score += evaluate_window(window, piece)
+
+    return score
+
+def is_terminal_node(board):
+    return CheckWin(board, P1Token) or CheckWin(board, P2Token) or len(get_valid_locations(board)) == 0
+
+def minimax(board, depth, alpha, beta, maximizingPlayer):
+    valid_locations = get_valid_locations(board)
+    is_terminal = is_terminal_node(board)
+    if depth == 0 or is_terminal:
+        if is_terminal:
+            if CheckWin(board, P2Token):
+                return (None, 100000000000000)
+            elif CheckWin(board, P1Token):
+                return (None, -10000000000000)
+            else: # Game is over, no more valid moves
+                return (None, 0)
+        else: # Depth is zero
+            return (None, score_position(board, P2Token))
+    if maximizingPlayer:
+        value = -math.inf
+        column = random.choice(valid_locations)
+        for col in valid_locations:
+            row = GetTopRow(board, col)
+            b_copy = board.copy()
+            PlacePiece(b_copy, row, col, P2Token)
+            new_score = minimax(b_copy, depth-1, alpha, beta, False)[1]
+            if new_score > value:
+                value = new_score
+                column = col
+            alpha = max(alpha, value)
+            if alpha >= beta:
+                break
+        return column, value
+
+    else: # Minimizing player
+        value = math.inf
+        column = random.choice(valid_locations)
+        for col in valid_locations:
+            row = GetTopRow(board, col)
+            b_copy = board.copy()
+            PlacePiece(b_copy, row, col, P1Token)
+            new_score = minimax(b_copy, depth-1, alpha, beta, True)[1]
+            if new_score < value:
+                value = new_score
+                column = col
+            beta = min(beta, value)
+            if alpha >= beta:
+                break
+        return column, value
+
+def get_valid_locations(board):
+    valid_locations = []
+    for col in range(ColumnCount):
+        if CheckValid(board, col):
+            valid_locations.append(col)
+    return valid_locations
+
+def pick_best_move(board, piece):
+
+    valid_locations = get_valid_locations(board)
+    best_score = -10000
+    best_col = random.choice(valid_locations)
+    for col in valid_locations:
+        row = GetTopRow(board, col)
+        temp_board = board.copy()
+        PlacePiece(temp_board, row, col, piece)
+        score = score_position(temp_board, piece)
+        if score > best_score:
+            best_score = score
+            best_col = col
+
+    return best_col
+
 #Main Menu Class
 BACKGROUND = path.join(path.dirname(path.abspath(__file__)), '{0}').format('Background.png')
 
 background_image = pygame_menu.BaseImage(
-    image_path=BACKGROUND
-)
+    image_path=BACKGROUND)
+
+#
 
 
-def StartGame():
+def StartGame(mode):
     global board
     global SquareSize
     global width
@@ -209,7 +339,7 @@ def StartGame():
                         text_rect = label.get_rect(center=(700/2, 100/2))
                         screen.blit(label, text_rect)
                         GameOver = True
-                elif turn == Player2:              
+                elif turn == Player2 and not mode:              
                     posx = event.pos[0]
                     MakeMove(board, posx, 2)
                     if CheckWin(board, 2):
@@ -226,15 +356,32 @@ def StartGame():
                 LogMove(board)
                 DrawBoard(board)
                 
+            if turn == Player2 and mode:
+                col, minimax_score = minimax(board, 5, -math.inf, math.inf, True)
+
+                if CheckValid(board, col):
+                    row = GetTopRow(board, col)
+                    PlacePiece(board, row, col, 2)
+
+                    if CheckWin(board, 2):
+                        label = myfont.render("PLAYER TWO WINS", 1, YELLOW)
+                        text_rect = label.get_rect(center=(width/2, SquareSize/2))
+                        screen.blit(label, text_rect)
+                        GameOver = True
+                
+                turn += 1
+                turn = turn % 2 
+                
+                LogMove(board)
+                DrawBoard(board)
+                
             if GameOver:
                 #send to endgame menu
                 main_menu.disable()
                 options_menu.enable()
                 break
-                        
-
-                    
-
+            
+            
 #Main Class
 def background() -> None:
     """
@@ -280,11 +427,13 @@ def main(test: bool = False) -> None:
     theme.background_color = (0, 0, 0, 180)
     
     main_menu = pygame_menu.Menu('Connect 4', width, height, theme=theme)
-    main_menu.add.button('Two Player', StartGame)
+    main_menu.add.button('Two Player', StartGame, False)
+    main_menu.add.button('Player VS AI', StartGame, True)
     main_menu.add.button('Exit', pygame_menu.events.EXIT)
     
     options_menu = pygame_menu.Menu('Game Over', 400, 300, theme=theme)
-    options_menu.add.button('Play Again', StartGame)
+    options_menu.add.button('Two Player', StartGame, False)
+    options_menu.add.button('Player VS AI', StartGame, True)
     options_menu.add.button('Exit', pygame_menu.events.EXIT)
     
     
