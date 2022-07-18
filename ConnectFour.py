@@ -160,6 +160,10 @@ def StartGame():
         for event in events:
             if event.type == pygame.QUIT:
                 sys.exit()
+            #elif event.type == pygame.KEYDOWN:
+            #   if event.key == pygame.K_ESCAPE:
+            #       main_menu.enable()
+            #       return
                 
             if event.type == pygame.MOUSEMOTION:
                 top = pygame.image.load('Top.png')
@@ -224,15 +228,10 @@ def StartGame():
                 
             if GameOver:
                 #send to endgame menu
-                #pygame.time.wait(3000)
                 main_menu.disable()
                 options_menu.enable()
-                
-                events = pygame.event.get()
-                for event in events:
-                    if event.type == pygame.QUIT:
-                        quit()
-                break        
+                break
+                        
 
                     
 
@@ -280,12 +279,12 @@ def main(test: bool = False) -> None:
     theme.widget_font = pygame_menu.font.FONT_8BIT
     theme.background_color = (0, 0, 0, 180)
     
-    main_menu = pygame_menu.Menu('Connect 4', width*0.8, height*0.8, theme=theme)
+    main_menu = pygame_menu.Menu('Connect 4', width, height, theme=theme)
     main_menu.add.button('Two Player', StartGame)
     main_menu.add.button('Exit', pygame_menu.events.EXIT)
     
     options_menu = pygame_menu.Menu('Game Over', 400, 300, theme=theme)
-    options_menu.add.button('Back to Start', pygame_menu.events.BACK)
+    options_menu.add.button('Play Again', StartGame)
     options_menu.add.button('Exit', pygame_menu.events.EXIT)
     
     
@@ -296,12 +295,6 @@ def main(test: bool = False) -> None:
         for e in events:
             if e.type == pygame.QUIT:
                 sys.exit()
-            elif e.type == pygame.KEYDOWN:
-                if e.key == pygame.K_ESCAPE:
-                    main_menu.enable()
-        
-                    # Quit this function, then skip to loop of main-menu
-                    return
         
         # Pass events to main_menu
         if main_menu.is_enabled():
