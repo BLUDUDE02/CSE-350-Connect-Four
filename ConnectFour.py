@@ -20,10 +20,13 @@ P2Token = 2
 
 RED = (155, 26, 10)
 YELLOW = (171, 92, 28)
+BLUE = (60, 159, 156)
 
 GameMode = 0
 Difficulty = 0
 ValidMove = True;
+
+tie = False;
 
 WINDOW_LENGTH = 4
 
@@ -97,6 +100,8 @@ def MakeMove(board, posx, piece):
         
 #Find Winning Move       
 def CheckWin(board, piece):
+    tiescore = 0
+    global tie
     # Check horizontal locations for win
     for c in range(ColumnCount-3):
         for r in range(RowCount):
@@ -120,6 +125,14 @@ def CheckWin(board, piece):
         for r in range(3, RowCount):
             if board[r][c] == piece and board[r-1][c+1] == piece and board[r-2][c+2] == piece and board[r-3][c+3] == piece:
                 return True
+    # Check Tie
+    for c in range(ColumnCount):
+        for r in range(RowCount):
+            if board[r][c] != 0:
+                tiescore += 1
+    
+    if tiescore == RowCount * ColumnCount:
+        tie = True
 #
 
 #AI Class
@@ -376,11 +389,19 @@ def StartGame(mode):
                 LogMove(board)
                 DrawBoard(board)
                 
+            if tie:
+                print("TIE")
+                label = myfont.render("TIE", 1, BLUE)
+                text_rect = label.get_rect(center=(700/2, 100/2))
+                screen.blit(label, text_rect)
+                GameOver = True
+                
             if GameOver:
                 #send to endgame menu
                 main_menu.disable()
                 options_menu.enable()
                 break
+            
             
             
 #Main Class
@@ -444,7 +465,7 @@ def main(test: bool = False) -> None:
         events = pygame.event.get()
         for e in events:
             if e.type == pygame.QUIT:
-                sys.exit()
+                os._exit(00)
         
         # Pass events to main_menu
         if main_menu.is_enabled():
