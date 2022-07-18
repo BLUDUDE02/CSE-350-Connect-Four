@@ -3,6 +3,7 @@ import pygame
 import pygame_menu
 import sys
 import math
+import os.path as path
 
 #Variable Declarations
 RowCount = 6
@@ -117,6 +118,12 @@ def CheckWin(board, piece):
 #
 
 #Main Menu Class
+BACKGROUND = path.join(path.dirname(path.abspath(__file__)), '{0}').format('Background.png')
+
+background_image = pygame_menu.BaseImage(
+    image_path=BACKGROUND
+)
+
 
 def StartGame():
     global board
@@ -131,6 +138,8 @@ def StartGame():
     board = CreateBoard()
     LogMove(board)
  
+    SquareSize = 100 
+    
     myfont = pygame.font.Font("HackbotFreeTrial-8MgA2.otf", 75)
     
     top = pygame.image.load('Top.png')
@@ -145,6 +154,23 @@ def StartGame():
     turn = 0
     
     while not GameOver:
+        
+        # application events -- turn this in to function
+        events = pygame.event.get()
+        for e in events:
+            if e.type == pygame.QUIT:
+                exit()
+            elif e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_ESCAPE:
+                    main_menu.enable()
+        
+                    # Quit this function, then skip to loop of main-menu
+                    return
+        
+        # Pass events to main_menu
+        if main_menu.is_enabled():
+            main_menu.update(events)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
@@ -225,41 +251,84 @@ def StartGame():
                 #pygame.time.wait(3000)
                 options_menu.enable()
                 
+                if options_menu.is_enabled():
+                    options_menu.update(events)
 
 #Main Class
-pygame.init()
+def background() -> None:
+    """
+    Function used by menus, draw on background while menu is active.
+    
 
-#Post PyGame Initialization Variable Declarations
-SquareSize = 100
+    background = pygame.image.load('Background.png')
+    background.convert()
+    
+    background_image = pygame.image.load('Background.png')
+    surface.blit(background_image)
+    
+    pygame.display.update()
+    """
+    global screen
+    background_image.draw(screen)
 
-width = 700
-height = 700
-size = (width, height)
-screen = pygame.display.set_mode(size)
+def main(test: bool = False) -> None:
+    
+    global main_menu
+    global options_menu
+    global screen
+    global width
+    global height
+    
+    pygame.init()
+    
+    #Post PyGame Initialization Variable Declarations    
+    width = 700
+    height = 700
+    size = (width, height)
+    screen = pygame.display.set_mode(size)
+    
+    
 
+    
+    # -------------------------------------------------------------------------
+    # Menus
+    # -------------------------------------------------------------------------
+    theme = pygame_menu.themes.THEME_DARK.copy()
+    theme.title_font = pygame.font.Font("HackbotFreeTrial-8MgA2.otf", 28)
+    theme.background_color = (0, 0, 0, 180)
+    
+    main_menu = pygame_menu.Menu('Main Menu', 400, 300, theme=theme)
+    main_menu.add.button('Two Player', StartGame)
+    main_menu.add.button('Exit', pygame_menu.events.EXIT)
+    
+    options_menu = pygame_menu.Menu('Game Over', 400, 300, theme=theme)
+    options_menu.add.button('Play Again', StartGame)
+    options_menu.add.button('Exit', pygame_menu.events.EXIT)
+    
+    
+    while True:
+        
+        #event handling
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                exit()
+            
+        
+        # Main menu
+        if main_menu.is_enabled():
+            main_menu.mainloop(screen, background)
+            
+        # Flip surface
+        pygame.display.flip()
 
-#background_image = pygame_menu.BaseImage(
-#    image_path=pygame_menu.baseimage.IMAGE_EXAMPLE_WALLPAPER
-#)
-background = pygame.image.load('Background.png')
-background.convert()
-
-pygame.display.update()
-
-# -------------------------------------------------------------------------
-# Menus
-# -------------------------------------------------------------------------
-theme = pygame_menu.themes.THEME_DARK.copy()
-theme.title_font = pygame.font.Font("HackbotFreeTrial-8MgA2.otf", 28)
-theme.background_color = (0, 0, 0, 180)
-
-main_menu = pygame_menu.Menu('Main Menu', 400, 300, theme=theme)
-main_menu.add.button('Two Player', StartGame)
-main_menu.add.button('Exit', pygame_menu.events.EXIT)
-
-options_menu = pygame_menu.Menu('Game Over', 400, 300, theme=theme)
-options_menu.add.button('Play Again', StartGame)
-options_menu.add.button('Exit', pygame_menu.events.EXIT)
-
-main_menu.mainloop(screen)
+        # At first loop returns
+        if test:
+            break
+        
+if __name__ == '__main__':
+    main()
+  
+      
+    
     
