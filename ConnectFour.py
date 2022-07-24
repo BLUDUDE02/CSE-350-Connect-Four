@@ -6,8 +6,13 @@ import sys
 import math
 import os.path as path
 import os
+import sqlite3
+from database_connection import *
 
 #Variable Declarations
+con = sqlite3.connect("savelog.db")
+cur = con.cursor()
+
 RowCount = 6
 ColumnCount = 7
 
@@ -88,16 +93,24 @@ def LogMove(board):
     print(np.flip(board,0))
 
 #Handle input from mouse position
-def MakeMove(board, posx, piece):
-    global ValidMove
-    col = int(math.floor(posx/SquareSize))
-    if CheckValid(board, col):
-        ValidMove = True
-        row = GetTopRow(board, col)
-        PlacePiece(board, row, col, piece)
-    else:
-        ValidMove = False
+# def MakeMove(board, posx, piece):
+#     global ValidMove
+#     col = int(math.floor(posx/SquareSize))
+#     if CheckValid(board, col):
+#         ValidMove = True
+#         row = GetTopRow(board, col)
+#         PlacePiece(board, row, col, piece)
+#     else:
+#         ValidMove = False
         
+
+def stringify_board(board):
+    b =""
+    for _, v in enumerate(board):
+        s = ",".join(v.astype(str)) + ";"
+        b = b+s
+    return b
+
 #Find Winning Move       
 def CheckWin(board, piece):
     tiescore = 0
@@ -318,7 +331,7 @@ def StartGame(mode):
                 screen.blit(top, rect4)
                 posx = event.pos[0]
                 posxr = round(posx/10)*10
-                if turn == Player1:
+                if turn % 2 == Player1:
                     redtok = pygame.image.load('Red-Token.png')
                     redtok.convert()
 
@@ -326,7 +339,7 @@ def StartGame(mode):
                     rect1.center = (posxr, int(SquareSize/2))
                     screen.blit(redtok, rect1)
 
-                elif turn == Player2:
+                elif turn % 2 == Player2:
                     yeltok = pygame.image.load('Yellow-Token.png')
                     yeltok.convert()
                     
@@ -344,28 +357,48 @@ def StartGame(mode):
                 rect4.center = (width/2, SquareSize/2)
                 screen.blit(top, rect4)
                 
-                if turn == Player1:
+                if turn % 2 == Player1:
                     posx = event.pos[0]
-                    MakeMove(board, posx, 1)
-                    if CheckWin(board, 1):
-                        print("PLAYER ONE WINS")
-                        label = myfont.render("PLAYER ONE WINS", 1, RED)
-                        text_rect = label.get_rect(center=(700/2, 100/2))
-                        screen.blit(label, text_rect)
-                        GameOver = True
-                elif turn == Player2 and not mode:              
-                    posx = event.pos[0]
-                    MakeMove(board, posx, 2)
-                    if CheckWin(board, 2):
-                        print("PLAYER TWO WINS")
-                        label = myfont.render("PLAYER TWO WINS", 1, YELLOW)
-                        text_rect = label.get_rect(center=(700/2, 100/2))
-                        screen.blit(label, text_rect)
-                        GameOver = True
+                    # MakeMove(board, posx, 1)
+                    col = int(math.floor(posx/SquareSize))
+                    
+                    if CheckValid(board, col):
+                        strBoard = stringify_board(board)
+                    
+                        row = GetTopRow(board, col)
+                        PlacePiece(board, row, col, 1)
                         
-                if ValidMove:
-                    turn += 1
-                    turn = turn % 2
+                        record_move(strBoard, turn, Player1, row, col, con)
+                        
+                        if CheckWin(board, 1):
+                            print("PLAYER ONE WINS")
+                            label = myfont.render("PLAYER ONE WINS", 1, RED)
+                            text_rect = label.get_rect(center=(700/2, 100/2))
+                            screen.blit(label, text_rect)
+                            GameOver = True
+                            
+                elif turn % 2 == Player2 and not mode:              
+                    posx = event.pos[0]
+                    # MakeMove(board, posx, 2)
+                    col = int(math.floor(posx/SquareSize))
+                    
+                    if CheckValid(board, col):
+                        row = GetTopRow(board, col)
+                        PlacePiece(board, row, col, 2)
+                        
+                        record_move(board, turn, Player1, row, col, con)
+                        
+                        if CheckWin(board, 2):
+                            print("PLAYER TWO WINS")
+                            label = myfont.render("PLAYER TWO WINS", 1, YELLOW)
+                            text_rect = label.get_rect(center=(700/2, 100/2))
+                            screen.blit(label, text_rect)
+                            GameOver = True
+                
+                turn += 1
+                # if ValidMove:
+                #     turn += 1
+                #     turn = turn % 2
 
                 LogMove(board)
                 DrawBoard(board)
@@ -401,9 +434,7 @@ def StartGame(mode):
                 main_menu.disable()
                 options_menu.enable()
                 break
-            
-            
-            
+                    
 #Main Class
 def background() -> None:
     """
