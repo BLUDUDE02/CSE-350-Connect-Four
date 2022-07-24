@@ -260,6 +260,11 @@ def pick_best_move(board, piece):
 
     return best_col
 
+def set_difficulty(value, difficulty):
+    global Difficulty
+    Difficulty = difficulty
+    pass
+
 #Main Menu Class
 BACKGROUND = path.join(path.dirname(path.abspath(__file__)), '{0}').format('Background.png')
 
@@ -371,8 +376,13 @@ def StartGame(mode):
                 DrawBoard(board)
                 
             if turn == Player2 and mode:
-                col, minimax_score = minimax(board, 5, -math.inf, math.inf, True)
-
+                if Difficulty == 2:
+                    col, minimax_score = minimax(board, 5, -math.inf, math.inf, True)
+                    print("MINIMAX AI")
+                else:
+                    col = random.randint(0, RowCount - 1)
+                    print("RANDOM AI")
+                    
                 if CheckValid(board, col):
                     row = GetTopRow(board, col)
                     PlacePiece(board, row, col, 2)
@@ -450,11 +460,13 @@ def main(test: bool = False) -> None:
     
     main_menu = pygame_menu.Menu('Connect 4', width, height, theme=theme)
     main_menu.add.button('Two Player', StartGame, False)
+    main_menu.add.selector('AI Mode ', [('Easy', 1), ('Hard', 2)], onchange=set_difficulty)
     main_menu.add.button('Player VS AI', StartGame, True)
     main_menu.add.button('Exit', pygame_menu.events.EXIT)
     
     options_menu = pygame_menu.Menu('Game Over', 400, 300, theme=theme)
     options_menu.add.button('Two Player', StartGame, False)
+    options_menu.add.selector('AI Mode ', [('Easy', 1), ('Hard', 2)], onchange=set_difficulty)
     options_menu.add.button('Player VS AI', StartGame, True)
     options_menu.add.button('Exit', pygame_menu.events.EXIT)
     
