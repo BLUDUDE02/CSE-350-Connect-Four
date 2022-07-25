@@ -310,6 +310,9 @@ def StartGame(mode):
     global turn
     global screen
     global saveString
+    global tie
+    
+    tie = False
     
     GameOver = False
     SquareSize = 100 
