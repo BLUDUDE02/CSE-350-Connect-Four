@@ -30,6 +30,15 @@ tie = False;
 
 WINDOW_LENGTH = 4
 
+saveString = ""
+prntUpdate = "Building Board!"
+#prntBoard = np.flip(board,0)
+prntWin1 = "PLAYER ONE WINS"
+prntWin2 = "PLAYER TWO WINS"
+prntTie = "TIE"
+
+
+
 #Game Board Class
 def CreateBoard():
     board = np.zeros((RowCount, ColumnCount))
@@ -49,7 +58,10 @@ def DrawBoard(board):
     yeltok.convert()
     rect2 = yeltok.get_rect()
     
-    print("Building Board!")
+    
+    print(prntUpdate)
+    global saveString
+    saveString += prntUpdate + "\n"
     
     for c in range(ColumnCount):
         for r in range(RowCount):
@@ -85,7 +97,11 @@ def GetTopRow(board, col):
 
 #Output Board in Log
 def LogMove(board):
+    global saveString
     print(np.flip(board,0))
+    boardtext = np.array2string(np.flip(board,0), 25)
+    saveString += boardtext
+    
 
 #Handle input from mouse position
 def MakeMove(board, posx, piece):
@@ -276,6 +292,7 @@ def StartGame(mode):
     global height
     global turn
     global screen
+    global saveString
     
     GameOver = False
     
@@ -348,7 +365,8 @@ def StartGame(mode):
                     posx = event.pos[0]
                     MakeMove(board, posx, 1)
                     if CheckWin(board, 1):
-                        print("PLAYER ONE WINS")
+                        print(prntWin1)
+                        saveString += prntWin1 + "\n"
                         label = myfont.render("PLAYER ONE WINS", 1, RED)
                         text_rect = label.get_rect(center=(700/2, 100/2))
                         screen.blit(label, text_rect)
@@ -357,7 +375,8 @@ def StartGame(mode):
                     posx = event.pos[0]
                     MakeMove(board, posx, 2)
                     if CheckWin(board, 2):
-                        print("PLAYER TWO WINS")
+                        print(prntWin2)
+                        saveString += prntWin2 + "\n"
                         label = myfont.render("PLAYER TWO WINS", 1, YELLOW)
                         text_rect = label.get_rect(center=(700/2, 100/2))
                         screen.blit(label, text_rect)
@@ -379,6 +398,8 @@ def StartGame(mode):
 
                     if CheckWin(board, 2):
                         label = myfont.render("PLAYER TWO WINS", 1, YELLOW)
+                        print(prntWin2)
+                        saveString += prntWin2 + "\n"
                         text_rect = label.get_rect(center=(width/2, SquareSize/2))
                         screen.blit(label, text_rect)
                         GameOver = True
@@ -390,7 +411,8 @@ def StartGame(mode):
                 DrawBoard(board)
                 
             if tie:
-                print("TIE")
+                print(prntTie)
+                saveString += prntTie + "\n"
                 label = myfont.render("TIE", 1, BLUE)
                 text_rect = label.get_rect(center=(700/2, 100/2))
                 screen.blit(label, text_rect)
@@ -401,8 +423,13 @@ def StartGame(mode):
                 main_menu.disable()
                 options_menu.enable()
                 break
-            
-            
+
+    try:
+        with open('ConnectFourSave.txt', 'w') as f:
+            f.write(saveString) 
+    except FileNotFoundError:
+        print("The 'docs' directory does not exist")
+    
             
 #Main Class
 def background() -> None:
