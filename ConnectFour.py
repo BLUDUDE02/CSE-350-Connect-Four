@@ -30,55 +30,67 @@ tie = False;
 
 WINDOW_LENGTH = 4
 
+
 saveString = ""
 prntUpdate = "Building Board!"
-#prntBoard = np.flip(board,0)
 prntWin1 = "PLAYER ONE WINS"
 prntWin2 = "PLAYER TWO WINS"
 prntTie = "TIE"
 
-
-
 #Game Board Class
-def CreateBoard():
-    board = np.zeros((RowCount, ColumnCount))
-    return board
-
-def DrawBoard(board):
-    casing = pygame.image.load('Casing.png')
-    casing.convert()
-    rect = casing.get_rect()
-    blankspace = pygame.image.load('Blank-Space.png')
-    blankspace.convert()
-    rect0 = blankspace.get_rect()
-    redtok = pygame.image.load('Red-Token.png')
-    redtok.convert()
-    rect1 = redtok.get_rect()
-    yeltok = pygame.image.load('Yellow-Token.png')
-    yeltok.convert()
-    rect2 = yeltok.get_rect()
+class GameBoard():
+    def __init__(self, RowCount, ColumnCount, SquareSize, screen):
+        self.RowCount = RowCount
+        self.ColumnCount = ColumnCount
+        self.SquareSize = SquareSize
+        self.screen = screen
+        
+    def CreateBoard(self):
+        RowCount = self.RowCount
+        ColumnCount = self.ColumnCount
+        board = np.zeros((RowCount, ColumnCount))
+        return board
     
-    
-    print(prntUpdate)
-    global saveString
-    saveString += prntUpdate + "\n"
-    
-    for c in range(ColumnCount):
-        for r in range(RowCount):
-            rect.center = (int(c*SquareSize+SquareSize/2), int(r*SquareSize+SquareSize+SquareSize/2))
-            rect0.center = (int(c*SquareSize+SquareSize/2), int(r*SquareSize+SquareSize+SquareSize/2))
-            screen.blit(casing, rect)
-            screen.blit(blankspace, rect0)
-    for c in range(ColumnCount):
-        for r in range(RowCount):        
-            if board[r][c] == P1Token:
-                rect1.center = (int(c*SquareSize+SquareSize/2), height-int(r*SquareSize+SquareSize/2))
-                screen.blit(redtok, rect1)
-            elif board[r][c] == P2Token: 
-                rect2.center = (int(c*SquareSize+SquareSize/2), height-int(r*SquareSize+SquareSize/2))
-                screen.blit(yeltok, rect2)
-    pygame.display.update()
+    def DrawBoard(self, board):
+        SquareSize = self.SquareSize
+        RowCount = self.RowCount
+        ColumnCount = self.ColumnCount
+        screen = self.screen
+        
+        casing = pygame.image.load('Casing.png')
+        casing.convert()
+        rect = casing.get_rect()
+        blankspace = pygame.image.load('Blank-Space.png')
+        blankspace.convert()
+        rect0 = blankspace.get_rect()
+        redtok = pygame.image.load('Red-Token.png')
+        redtok.convert()
+        rect1 = redtok.get_rect()
+        yeltok = pygame.image.load('Yellow-Token.png')
+        yeltok.convert()
+        rect2 = yeltok.get_rect()
+        
+        print(prntUpdate)
+        global saveString
+        saveString += prntUpdate + "\n"
+        
+        for c in range(ColumnCount):
+            for r in range(RowCount):
+                rect.center = (int(c*SquareSize+SquareSize/2), int(r*SquareSize+SquareSize+SquareSize/2))
+                rect0.center = (int(c*SquareSize+SquareSize/2), int(r*SquareSize+SquareSize+SquareSize/2))
+                screen.blit(casing, rect)
+                screen.blit(blankspace, rect0)
+        for c in range(ColumnCount):
+            for r in range(RowCount):        
+                if board[r][c] == P1Token:
+                    rect1.center = (int(c*SquareSize+SquareSize/2), height-int(r*SquareSize+SquareSize/2))
+                    screen.blit(redtok, rect1)
+                elif board[r][c] == P2Token: 
+                    rect2.center = (int(c*SquareSize+SquareSize/2), height-int(r*SquareSize+SquareSize/2))
+                    screen.blit(yeltok, rect2)
+        pygame.display.update()
 #
+
 
 #Game Play Class
 #Placement Function
@@ -152,7 +164,7 @@ def CheckWin(board, piece):
 #
 
 #AI Class
-def evaluate_window(window, piece):
+def EvaluateWindow(window, piece):
     score = 0
     opp_piece = P1Token
     if piece == P1Token:
@@ -170,7 +182,7 @@ def evaluate_window(window, piece):
 
     return score
 
-def score_position(board, piece):
+def ScorePosition(board, piece):
     score = 0
 
     ## Score center column
@@ -183,34 +195,34 @@ def score_position(board, piece):
         row_array = [int(i) for i in list(board[r,:])]
         for c in range(ColumnCount-3):
             window = row_array[c:c+WINDOW_LENGTH]
-            score += evaluate_window(window, piece)
+            score += EvaluateWindow(window, piece)
 
     ## Score Vertical
     for c in range(ColumnCount):
         col_array = [int(i) for i in list(board[:,c])]
         for r in range(RowCount-3):
             window = col_array[r:r+WINDOW_LENGTH]
-            score += evaluate_window(window, piece)
+            score += EvaluateWindow(window, piece)
 
     ## Score posiive sloped diagonal
     for r in range(RowCount-3):
         for c in range(ColumnCount-3):
             window = [board[r+i][c+i] for i in range(WINDOW_LENGTH)]
-            score += evaluate_window(window, piece)
+            score += EvaluateWindow(window, piece)
 
     for r in range(RowCount-3):
         for c in range(ColumnCount-3):
             window = [board[r+3-i][c+i] for i in range(WINDOW_LENGTH)]
-            score += evaluate_window(window, piece)
+            score += EvaluateWindow(window, piece)
 
     return score
 
-def is_terminal_node(board):
-    return CheckWin(board, P1Token) or CheckWin(board, P2Token) or len(get_valid_locations(board)) == 0
+def IsTerminalNode(board):
+    return CheckWin(board, P1Token) or CheckWin(board, P2Token) or len(GetValidLocations(board)) == 0
 
-def minimax(board, depth, alpha, beta, maximizingPlayer):
-    valid_locations = get_valid_locations(board)
-    is_terminal = is_terminal_node(board)
+def MiniMax(board, depth, alpha, beta, maximizingPlayer):
+    valid_locations = GetValidLocations(board)
+    is_terminal = IsTerminalNode(board)
     if depth == 0 or is_terminal:
         if is_terminal:
             if CheckWin(board, P2Token):
@@ -220,7 +232,7 @@ def minimax(board, depth, alpha, beta, maximizingPlayer):
             else: # Game is over, no more valid moves
                 return (None, 0)
         else: # Depth is zero
-            return (None, score_position(board, P2Token))
+            return (None, ScorePosition(board, P2Token))
     if maximizingPlayer:
         value = -math.inf
         column = random.choice(valid_locations)
@@ -228,7 +240,7 @@ def minimax(board, depth, alpha, beta, maximizingPlayer):
             row = GetTopRow(board, col)
             b_copy = board.copy()
             PlacePiece(b_copy, row, col, P2Token)
-            new_score = minimax(b_copy, depth-1, alpha, beta, False)[1]
+            new_score = MiniMax(b_copy, depth-1, alpha, beta, False)[1]
             if new_score > value:
                 value = new_score
                 column = col
@@ -244,7 +256,7 @@ def minimax(board, depth, alpha, beta, maximizingPlayer):
             row = GetTopRow(board, col)
             b_copy = board.copy()
             PlacePiece(b_copy, row, col, P1Token)
-            new_score = minimax(b_copy, depth-1, alpha, beta, True)[1]
+            new_score = MiniMax(b_copy, depth-1, alpha, beta, True)[1]
             if new_score < value:
                 value = new_score
                 column = col
@@ -253,30 +265,30 @@ def minimax(board, depth, alpha, beta, maximizingPlayer):
                 break
         return column, value
 
-def get_valid_locations(board):
+def GetValidLocations(board):
     valid_locations = []
     for col in range(ColumnCount):
         if CheckValid(board, col):
             valid_locations.append(col)
     return valid_locations
 
-def pick_best_move(board, piece):
+def PickBestMove(board, piece):
 
-    valid_locations = get_valid_locations(board)
+    valid_locations = GetValidLocations(board)
     best_score = -10000
     best_col = random.choice(valid_locations)
     for col in valid_locations:
         row = GetTopRow(board, col)
         temp_board = board.copy()
         PlacePiece(temp_board, row, col, piece)
-        score = score_position(temp_board, piece)
+        score = ScorePosition(temp_board, piece)
         if score > best_score:
             best_score = score
             best_col = col
 
     return best_col
 
-def set_difficulty(value, difficulty):
+def SetDifficulty(value, difficulty):
     global Difficulty
     Difficulty = difficulty
     pass
@@ -300,12 +312,8 @@ def StartGame(mode):
     global saveString
     
     GameOver = False
-    
-    board = CreateBoard()
-    LogMove(board)
- 
     SquareSize = 100 
-    
+    turn = 0
     myfont = pygame.font.Font("HackbotFreeTrial-8MgA2.otf", 75)
     
     top = pygame.image.load('Top.png')
@@ -314,10 +322,13 @@ def StartGame(mode):
     rect4 = top.get_rect()
     rect4.center = (width/2, SquareSize/2)
     screen.blit(top, rect4)
+    
+    gameBoard = GameBoard(RowCount, ColumnCount, SquareSize, screen)
+    board = gameBoard.CreateBoard()
+    LogMove(board)
+    gameBoard.DrawBoard(board)
 
-    DrawBoard(board)
 
-    turn = 0
     
     while not GameOver:
         
@@ -326,10 +337,6 @@ def StartGame(mode):
         for event in events:
             if event.type == pygame.QUIT:
                 os._exit(00)
-            #elif event.type == pygame.KEYDOWN:
-            #   if event.key == pygame.K_ESCAPE:
-            #       main_menu.enable()
-            #       return
                 
             if event.type == pygame.MOUSEMOTION:
                 top = pygame.image.load('Top.png')
@@ -392,11 +399,11 @@ def StartGame(mode):
                     turn = turn % 2
 
                 LogMove(board)
-                DrawBoard(board)
+                gameBoard.DrawBoard(board)
                 
             if turn == Player2 and mode:
                 if Difficulty == 2:
-                    col, minimax_score = minimax(board, 5, -math.inf, math.inf, True)
+                    col, MiniMax_score = MiniMax(board, 5, -math.inf, math.inf, True)
                     print("MINIMAX AI")
                 else:
                     col = random.randint(0, RowCount - 1)
@@ -418,7 +425,7 @@ def StartGame(mode):
                 turn = turn % 2 
                 
                 LogMove(board)
-                DrawBoard(board)
+                gameBoard.DrawBoard(board)
                 
             if tie:
                 print(prntTie)
@@ -443,18 +450,6 @@ def StartGame(mode):
             
 #Main Class
 def background() -> None:
-    """
-    Function used by menus, draw on background while menu is active.
-    
-
-    background = pygame.image.load('Background.png')
-    background.convert()
-    
-    background_image = pygame.image.load('Background.png')
-    surface.blit(background_image)
-    
-    pygame.display.update()
-    """
     global screen
     background_image.draw(screen)
 
@@ -473,34 +468,30 @@ def main(test: bool = False) -> None:
     height = 700
     size = (width, height)
     screen = pygame.display.set_mode(size)
+    myfont = pygame.font.Font("HackbotFreeTrial-8MgA2.otf", 45)
     
-    
-
-    
-    # -------------------------------------------------------------------------
     # Menus
-    # -------------------------------------------------------------------------
     theme = pygame_menu.themes.THEME_DARK.copy()
     theme.title_font = pygame_menu.font.FONT_8BIT
-    theme.widget_font = pygame_menu.font.FONT_8BIT
+    theme.widget_font = myfont
     theme.background_color = (0, 0, 0, 180)
     
     main_menu = pygame_menu.Menu('Connect 4', width, height, theme=theme)
     main_menu.add.button('Two Player', StartGame, False)
-    main_menu.add.selector('AI Mode ', [('Easy', 1), ('Hard', 2)], onchange=set_difficulty)
+    main_menu.add.selector('AI Mode ', [('Easy', 1), ('Hard', 2)], onchange=SetDifficulty)
     main_menu.add.button('Player VS AI', StartGame, True)
     main_menu.add.button('Exit', pygame_menu.events.EXIT)
     
     options_menu = pygame_menu.Menu('Game Over', 400, 300, theme=theme)
     options_menu.add.button('Two Player', StartGame, False)
-    options_menu.add.selector('AI Mode ', [('Easy', 1), ('Hard', 2)], onchange=set_difficulty)
+    options_menu.add.selector('AI Mode ', [('Easy', 1), ('Hard', 2)], onchange=SetDifficulty)
     options_menu.add.button('Player VS AI', StartGame, True)
     options_menu.add.button('Exit', pygame_menu.events.EXIT)
     
     
     while True:
         
-        # events handling for menus -- turn this in to function
+        # events handling for menus 
         events = pygame.event.get()
         for e in events:
             if e.type == pygame.QUIT:
