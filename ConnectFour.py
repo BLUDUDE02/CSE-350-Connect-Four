@@ -469,10 +469,11 @@ def main(test: bool = False) -> None:
     size = (width, height)
     screen = pygame.display.set_mode(size)
     myfont = pygame.font.Font("HackbotFreeTrial-8MgA2.otf", 45)
+    myfontlarge = pygame.font.Font("HackbotFreeTrial-8MgA2.otf", 60)
     
     # Menus
     theme = pygame_menu.themes.THEME_DARK.copy()
-    theme.title_font = pygame_menu.font.FONT_8BIT
+    theme.title_font = myfontlarge
     theme.widget_font = myfont
     theme.background_color = (0, 0, 0, 180)
     
