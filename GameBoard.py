@@ -5,8 +5,8 @@ P1Token = 1
 P2Token = 2
 height = 700
 
-class GameBoard:
-    def _init_(self, RowCount, ColumnCount, SquareSize, screen):
+class GameBoard():
+    def __init__(self, RowCount, ColumnCount, SquareSize, screen):
         self.RowCount = RowCount
         self.ColumnCount = ColumnCount
         self.SquareSize = SquareSize
@@ -23,6 +23,7 @@ class GameBoard:
         RowCount = self.RowCount
         ColumnCount = self.ColumnCount
         screen = self.screen
+        board = self.CreateBoard()
         
         casing = pygame.image.load('Casing.png')
         casing.convert()
@@ -47,10 +48,10 @@ class GameBoard:
                 screen.blit(blankspace, rect0)
         for c in range(ColumnCount):
             for r in range(RowCount):        
-                if self[r][c] == P1Token:
+                if board[r][c] == P1Token:
                     rect1.center = (int(c*SquareSize+SquareSize/2), height-int(r*SquareSize+SquareSize/2))
                     screen.blit(redtok, rect1)
-                elif self[r][c] == P2Token: 
+                elif board[r][c] == P2Token: 
                     rect2.center = (int(c*SquareSize+SquareSize/2), height-int(r*SquareSize+SquareSize/2))
                     screen.blit(yeltok, rect2)
         pygame.display.update()
